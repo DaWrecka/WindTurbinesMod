@@ -3,18 +3,24 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29409.12
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WindTurbinesMod", "WindTurbineMod\WindTurbinesMod.csproj", "{D2D8049B-BD4E-4766-A193-437C01C922D3}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WindTurbinesMod", "WindTurbinesMod.csproj", "{D2D8049B-BD4E-4766-A193-437C01C922D3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		Debug|Any CPU = Debug|Any CPU
-		Release|Any CPU = Release|Any CPU
+		BZ|Any CPU = BZ|Any CPU
+		BZ|x64 = BZ|x64
+		SN1|Any CPU = SN1|Any CPU
+		SN1|x64 = SN1|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{D2D8049B-BD4E-4766-A193-437C01C922D3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D2D8049B-BD4E-4766-A193-437C01C922D3}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D2D8049B-BD4E-4766-A193-437C01C922D3}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D2D8049B-BD4E-4766-A193-437C01C922D3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D2D8049B-BD4E-4766-A193-437C01C922D3}.BZ|Any CPU.ActiveCfg = BZ|Any CPU
+		{D2D8049B-BD4E-4766-A193-437C01C922D3}.BZ|Any CPU.Build.0 = BZ|Any CPU
+		{D2D8049B-BD4E-4766-A193-437C01C922D3}.BZ|x64.ActiveCfg = BZ|Any CPU
+		{D2D8049B-BD4E-4766-A193-437C01C922D3}.BZ|x64.Build.0 = BZ|Any CPU
+		{D2D8049B-BD4E-4766-A193-437C01C922D3}.SN1|Any CPU.ActiveCfg = SN1|Any CPU
+		{D2D8049B-BD4E-4766-A193-437C01C922D3}.SN1|Any CPU.Build.0 = SN1|Any CPU
+		{D2D8049B-BD4E-4766-A193-437C01C922D3}.SN1|x64.ActiveCfg = SN1|Any CPU
+		{D2D8049B-BD4E-4766-A193-437C01C922D3}.SN1|x64.Build.0 = SN1|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

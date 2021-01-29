@@ -12,5 +12,6 @@ namespace WindTurbinesMod
         public bool PositionInfluencesPower;
         public bool TurbineTakesDamage;
         public bool TurbineMakesNoise;
+        public float MaxPower;
     }
 }

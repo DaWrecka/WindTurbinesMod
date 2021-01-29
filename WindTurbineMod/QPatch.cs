@@ -9,6 +9,10 @@ using SMLHelper.V2.Handlers;
 using SMLHelper.V2.Utility;
 using SMLHelper.V2.Crafting;
 using QModManager.API.ModLoading;
+#if SUBNAUTICA
+using RecipeData = SMLHelper.V2.Crafting.TechData;
+using Sprite = Atlas.Sprite;
+#endif
 
 namespace WindTurbinesMod
 {
@@ -53,8 +57,19 @@ namespace WindTurbinesMod
             //patch crafting recipes
             //is there a more efficient way of doing this?
             turbineBlade = TechTypeHandler.AddTechType("TurbineBlade", "Turbine Blade", "Necessary component in constructing a wind turbine. Large and lightweight for maximum aerodynamics.", GetSprite("TurbineBlade"));
-            CraftDataHandler.SetItemSize(turbineBlade, new Vector2int(2, 1));
-            var techDataBlade = new TechData()
+            turbineGenerator = TechTypeHandler.AddTechType("TurbineGenerator", "Turbine Generator", "Necessary component in constructing a wind turbine. Converts mechanical energy of the blades into usable electricity.", GetSprite("Generator"));
+            turbinePole = TechTypeHandler.AddTechType("TurbinePole", "Turbine Base", "Necessary component in constructing a wind turbine. Supports the large structure.", GetSprite("TurbinePole"));
+
+            var turbine = new WindTurbine.TurbinePatch();
+            turbine.Patch();
+        }
+
+        [QModPostPatch]
+        public void PostPatch()
+        {
+            //patch crafting recipes
+            //is there a more efficient way of doing this?
+            var techDataBlade = new RecipeData()
             {
                 craftAmount = 3,
                 Ingredients = new List<Ingredient>()
@@ -64,10 +79,9 @@ namespace WindTurbinesMod
             };
             CraftDataHandler.SetTechData(turbineBlade, techDataBlade);
             CraftTreeHandler.AddCraftingNode(CraftTree.Type.Fabricator, turbineBlade, "Resources", "Electronics");
+            CraftDataHandler.SetItemSize(turbineBlade, new Vector2int(2, 1));
 
-            turbineGenerator = TechTypeHandler.AddTechType("TurbineGenerator", "Turbine Generator", "Necessary component in constructing a wind turbine. Converts mechanical energy of the blades into usable electricity.", GetSprite("Generator"));
-            CraftDataHandler.SetItemSize(turbineGenerator, new Vector2int(2, 2));
-            var techDataGen = new TechData()
+            var techDataGen = new RecipeData()
             {
                 craftAmount = 1,
                 Ingredients = new List<Ingredient>()
@@ -79,10 +93,9 @@ namespace WindTurbinesMod
             };
             CraftDataHandler.SetTechData(turbineGenerator, techDataGen);
             CraftTreeHandler.AddCraftingNode(CraftTree.Type.Fabricator, turbineGenerator, "Resources", "Electronics");
+            CraftDataHandler.SetItemSize(turbineGenerator, new Vector2int(2, 2));
 
-            turbinePole = TechTypeHandler.AddTechType("TurbinePole", "Turbine Base", "Necessary component in constructing a wind turbine. Supports the large structure.", GetSprite("TurbinePole"));
-            CraftDataHandler.SetItemSize(turbinePole, new Vector2int(1, 2));
-            var techDataPole = new TechData()
+            var techDataPole = new RecipeData()
             {
                 craftAmount = 1,
                 Ingredients = new List<Ingredient>()
@@ -92,9 +105,7 @@ namespace WindTurbinesMod
             };
             CraftDataHandler.SetTechData(turbinePole, techDataPole);
             CraftTreeHandler.AddCraftingNode(CraftTree.Type.Fabricator, turbinePole, "Resources", "Electronics");
-
-            var turbine = new WindTurbine.TurbinePatch();
-            turbine.Patch();
+            CraftDataHandler.SetItemSize(turbinePole, new Vector2int(1, 2));
 
             //Add the databank entry.
             LanguageHandler.SetLanguageLine("Ency_WindTurbine", "Wind Turbine");
@@ -105,7 +116,7 @@ namespace WindTurbinesMod
             //windTool.Patch();
         }
 
-        public static Atlas.Sprite GetSprite(string name)
+        public static Sprite GetSprite(string name)
         {
             return ImageUtils.LoadSpriteFromFile(@"./QMods/" + modName + "/Assets/" + name + ".png");
         }
