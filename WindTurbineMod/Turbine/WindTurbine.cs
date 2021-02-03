@@ -36,13 +36,14 @@ namespace WindTurbinesMod.WindTurbine
         public void Activate()
         {
             Logger.Log(Logger.Level.Debug, $"WindTurbine.Activate: start");
-            spin = gameObject.FindChild("Blade Parent").AddComponent<TurbineSpin>();
-            powerSource = gameObject.AddComponent<PowerSource>();
+            spin = gameObject.FindChild("Blade Parent").EnsureComponent<TurbineSpin>();
+            powerSource = gameObject.EnsureComponent<PowerSource>();
             powerSource.maxPower = QPatch.config.MaxPower;
-            relay = gameObject.AddComponent<PowerRelay>();
+            relay = gameObject.EnsureComponent<PowerRelay>();
             relay.internalPowerSource = powerSource;
             relay.dontConnectToRelays = false;
             relay.maxOutboundDistance = 50;
+            relay.powerSystemPreviewPrefab = Resources.Load<GameObject>("Base/Ghosts/PowerSystemPreview.prefab");
 
             if (relayPrefab != null)
             {
@@ -64,7 +65,7 @@ namespace WindTurbinesMod.WindTurbine
 
         void Start()
         {
-            health = gameObject.AddComponent<TurbineHealth>();
+            health = gameObject.EnsureComponent<TurbineHealth>(); //gameObject.AddComponent<TurbineHealth>();
             health.SetData();
             health.health = 200f;
 #if SUBNAUTICA
@@ -74,7 +75,7 @@ namespace WindTurbinesMod.WindTurbine
 #endif
         }
 
-        void SetupAudio()
+        internal void SetupAudio()
         {
             loopSource = spin.gameObject.AddComponent<AudioSource>();
             loopSource.clip = soundLoop;

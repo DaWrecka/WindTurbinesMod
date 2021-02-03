@@ -47,6 +47,7 @@
                 AssetBundleRequest request = QPatch.bundle.LoadAssetAsync<GameObject>("turbineprefab.prefab");
                 yield return request;
                 prefab = request.asset as GameObject;
+                prefab.SetActive(false); // Keep the prefab inactive until we're done adding components
 
                 //Need a tech tag for most prefabs
                 var techTag = prefab.AddComponent<TechTag>();
@@ -121,13 +122,20 @@
                 CoroutineTask<GameObject> task = CraftData.GetPrefabForTechTypeAsync(TechType.SolarPanel);
                 yield return task;
 
+                TurbineHealth turbineHealth = prefab.AddComponent<TurbineHealth>();
+                PowerSource powerSource = prefab.EnsureComponent<PowerSource>();
+                powerSource.maxPower = QPatch.config.MaxPower;
                 PowerRelay powerRelay = task.GetResult().GetComponent<PowerRelay>();
+                powerRelay.internalPowerSource = powerSource;
+                powerRelay.dontConnectToRelays = false;
+                powerRelay.maxOutboundDistance = 50;
+                powerRelay.powerSystemPreviewPrefab = Resources.Load<GameObject>("Base/Ghosts/PowerSystemPreview.prefab");
                 if (powerRelay != null)
                     turbine.relayPrefab = powerRelay;
                 turbine.Activate();
                 Logger.Log(Logger.Level.Debug, "TurbinePatch.GetGameObjectAsync: end");
             }
-
+            prefab.SetActive(true);
             gameObject.Set(prefab);
         }
 
