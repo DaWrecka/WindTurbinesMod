@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections;
+using Logger = QModManager.Utility.Logger;
 using UnityEngine;
+
 
 namespace WindTurbinesMod.WindTurbine 
 {
@@ -10,6 +12,7 @@ namespace WindTurbinesMod.WindTurbine
         TurbineHealth health;
 
         public PowerSource powerSource;
+        internal PowerRelay relayPrefab;
 
         [AssertNotNull]
         public PowerRelay relay;
@@ -32,6 +35,7 @@ namespace WindTurbinesMod.WindTurbine
 
         public void Activate()
         {
+            Logger.Log(Logger.Level.Debug, $"WindTurbine.Activate: start");
             spin = gameObject.FindChild("Blade Parent").AddComponent<TurbineSpin>();
             powerSource = gameObject.AddComponent<PowerSource>();
             powerSource.maxPower = QPatch.config.MaxPower;
@@ -40,14 +44,14 @@ namespace WindTurbinesMod.WindTurbine
             relay.dontConnectToRelays = false;
             relay.maxOutboundDistance = 50;
 
-            PowerFX yourPowerFX = gameObject.AddComponent<PowerFX>();
-#if SUBNAUTICA
-            PowerRelay powerRelay = CraftData.GetPrefabForTechType(TechType.SolarPanel).GetComponent<PowerRelay>();
+            if (relayPrefab != null)
+            {
+                PowerFX yourPowerFX = gameObject.AddComponent<PowerFX>();
 
-            yourPowerFX.vfxPrefab = powerRelay.powerFX.vfxPrefab;
-#endif
-            yourPowerFX.attachPoint = gameObject.transform;
-            relay.powerFX = yourPowerFX;
+                yourPowerFX.vfxPrefab = relayPrefab.powerFX.vfxPrefab;
+                yourPowerFX.attachPoint = gameObject.transform;
+                relay.powerFX = yourPowerFX;
+            }
 
 #if SUBNAUTICA
             Resources.UnloadAsset(powerRelay);
@@ -55,6 +59,7 @@ namespace WindTurbinesMod.WindTurbine
             relay.UpdateConnection();
 
             if(QPatch.config.TurbineMakesNoise) SetupAudio();
+            Logger.Log(Logger.Level.Debug, $"WindTurbine.Activate: end");
         }
 
         void Start()

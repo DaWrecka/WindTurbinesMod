@@ -7,6 +7,7 @@
     using SMLHelper.V2.Crafting;
     using SMLHelper.V2.Handlers;
     using SMLHelper.V2.Utility;
+    using Logger = QModManager.Utility.Logger;
     using UnityEngine;
 #if SUBNAUTICA
     using RecipeData = SMLHelper.V2.Crafting.TechData;
@@ -42,6 +43,7 @@
         {
             if (prefab == null)
             {
+                Logger.Log(Logger.Level.Debug, "TurbinePatch.GetGameObjectAsync: start");
                 AssetBundleRequest request = QPatch.bundle.LoadAssetAsync<GameObject>("turbineprefab.prefab");
                 yield return request;
                 prefab = request.asset as GameObject;
@@ -116,7 +118,14 @@
                 AssetBundleRequest request2 = QPatch.bundle.LoadAssetAsync<AudioClip>("turbineloop");
                 yield return request2;
                 turbine.soundLoop = request2.asset as AudioClip;
+                CoroutineTask<GameObject> task = CraftData.GetPrefabForTechTypeAsync(TechType.SolarPanel);
+                yield return task;
+
+                PowerRelay powerRelay = task.GetResult().GetComponent<PowerRelay>();
+                if (powerRelay != null)
+                    turbine.relayPrefab = powerRelay;
                 turbine.Activate();
+                Logger.Log(Logger.Level.Debug, "TurbinePatch.GetGameObjectAsync: end");
             }
 
             gameObject.Set(prefab);
@@ -197,6 +206,9 @@
                 light.lightShadowCasterMode = LightShadowCasterMode.Everything;
 
                 turbine.soundLoop = QPatch.bundle.LoadAsset<AudioClip>("turbineloop");
+                PowerRelay powerRelay = CraftData.GetPrefabForTechType(TechType.SolarPanel).GetComponent<PowerRelay>();
+                if(powerRelay != null)
+                    turbine.relayPrefab = powerRelay;
                 turbine.Activate();
             }
             return prefab;
