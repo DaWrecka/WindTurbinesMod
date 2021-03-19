@@ -64,6 +64,30 @@ namespace WindTurbinesMod
             turbine.Patch();
         }
 
+        [Obsolete]
+        private static readonly MethodInfo addJsonPropertyInfo = typeof(CraftDataHandler).GetMethod("AddJsonProperty", BindingFlags.NonPublic | BindingFlags.Static);
+
+        [Obsolete]
+        public static void AddJsonProperty(TechType techType, string key, JsonValue newValue)
+        {
+            addJsonPropertyInfo.Invoke(null, new object[] { techType, key, newValue });
+        }
+        public static void SetItemSize(TechType techType, int width, int height)
+        {
+            AddJsonProperty(techType, "itemSize", new JsonValue
+                {
+                    {
+                        TechData.propertyX,
+                        new JsonValue(width)
+                    },
+                    {
+                        TechData.propertyY,
+                        new JsonValue(height)
+                    }
+                }
+            );
+        }
+
         [QModPostPatch]
         public void PostPatch()
         {
@@ -78,8 +102,10 @@ namespace WindTurbinesMod
                 }
             };
             CraftDataHandler.SetTechData(turbineBlade, techDataBlade);
-            CraftTreeHandler.AddCraftingNode(CraftTree.Type.Fabricator, turbineBlade, "Resources", "Electronics");
+            CraftTreeHandler.AddCraftingNode(CraftTree.Type.Fabricator, turbineBlade, new string[] { "Resources", "Electronics" });
+            KnownTechHandler.SetAnalysisTechEntry(TechType.WiringKit, new TechType[] { turbineBlade });
             CraftDataHandler.SetItemSize(turbineBlade, new Vector2int(2, 1));
+            //SetItemSize(turbineBlade, 2, 1);
 
             var techDataGen = new RecipeData()
             {
@@ -92,8 +118,10 @@ namespace WindTurbinesMod
                 }
             };
             CraftDataHandler.SetTechData(turbineGenerator, techDataGen);
-            CraftTreeHandler.AddCraftingNode(CraftTree.Type.Fabricator, turbineGenerator, "Resources", "Electronics");
+            KnownTechHandler.SetAnalysisTechEntry(TechType.WiringKit, new TechType[] { turbineGenerator });
+            CraftTreeHandler.AddCraftingNode(CraftTree.Type.Fabricator, turbineGenerator, new string[] { "Resources", "Electronics" } );
             CraftDataHandler.SetItemSize(turbineGenerator, new Vector2int(2, 2));
+            //SetItemSize(turbineBlade, 2, 2);
 
             var techDataPole = new RecipeData()
             {
@@ -104,8 +132,10 @@ namespace WindTurbinesMod
                 }
             };
             CraftDataHandler.SetTechData(turbinePole, techDataPole);
-            CraftTreeHandler.AddCraftingNode(CraftTree.Type.Fabricator, turbinePole, "Resources", "Electronics");
+            KnownTechHandler.SetAnalysisTechEntry(TechType.WiringKit, new TechType[] { turbinePole });
+            CraftTreeHandler.AddCraftingNode(CraftTree.Type.Fabricator, turbinePole, new string[] { "Resources", "Electronics" } );
             CraftDataHandler.SetItemSize(turbinePole, new Vector2int(1, 2));
+            //SetItemSize(turbineBlade, 1, 2);
 
             //Add the databank entry.
             LanguageHandler.SetLanguageLine("Ency_WindTurbine", "Wind Turbine");

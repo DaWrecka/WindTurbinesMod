@@ -9,6 +9,7 @@
     using SMLHelper.V2.Utility;
     using Logger = QModManager.Utility.Logger;
     using UnityEngine;
+    using UWE;
 #if SUBNAUTICA
     using RecipeData = SMLHelper.V2.Crafting.TechData;
     using Sprite = Atlas.Sprite;
@@ -43,22 +44,21 @@
         {
             if (prefab == null)
             {
-                Logger.Log(Logger.Level.Debug, "TurbinePatch.GetGameObjectAsync: start");
                 AssetBundleRequest request = QPatch.bundle.LoadAssetAsync<GameObject>("turbineprefab.prefab");
                 yield return request;
                 prefab = request.asset as GameObject;
                 prefab.SetActive(false); // Keep the prefab inactive until we're done adding components
 
                 //Need a tech tag for most prefabs
-                var techTag = prefab.AddComponent<TechTag>();
+                var techTag = prefab.EnsureComponent<TechTag>();
                 techTag.type = TechType;
 
                 // Set prefab identifier, not sure what this does
-                var prefabId = prefab.AddComponent<PrefabIdentifier>();
+                var prefabId = prefab.EnsureComponent<PrefabIdentifier>();
                 prefabId.ClassId = ClassID;
 
                 //A collider for the turbine pole and builder tool
-                var collider = prefab.AddComponent<BoxCollider>();
+                var collider = prefab.EnsureComponent<BoxCollider>();
                 collider.size = new Vector3(2f, 17f, 2f);
                 collider.center = new Vector3(0f, 9f, 0f);
 
@@ -86,7 +86,7 @@
                 skyApplier.anchorSky = Skies.Auto;
 
                 // Add constructable - This prefab normally isn't constructed.
-                Constructable constructible = prefab.AddComponent<Constructable>();
+                Constructable constructible = prefab.EnsureComponent<Constructable>();
                 constructible.allowedInBase = false;
                 constructible.allowedInSub = false;
                 constructible.allowedOutside = true;
@@ -103,15 +103,15 @@
                 constructible.model = prefab.FindChild("Pole");
                 constructible.forceUpright = true;
 
-                prefab.FindChild("Blade Parent").AddComponent<Light>();
+                prefab.FindChild("Blade Parent").EnsureComponent<Light>();
 
-                var bounds = prefab.AddComponent<ConstructableBounds>();
-                WindTurbine turbine = prefab.AddComponent<WindTurbine>();
+                var bounds = prefab.EnsureComponent<ConstructableBounds>();
+                WindTurbine turbine = prefab.EnsureComponent<WindTurbine>();
 
                 GameObject lightEmitter = new GameObject("Light Emitter");
                 lightEmitter.transform.parent = prefab.transform;
                 lightEmitter.transform.localPosition = new Vector3(0f, 2f, 0f);
-                var light = lightEmitter.AddComponent<Light>();
+                var light = lightEmitter.EnsureComponent<Light>();
                 light.intensity = 1f;
                 light.range = 20f;
                 light.lightShadowCasterMode = LightShadowCasterMode.Everything;
@@ -122,18 +122,19 @@
                 CoroutineTask<GameObject> task = CraftData.GetPrefabForTechTypeAsync(TechType.SolarPanel);
                 yield return task;
 
-                TurbineHealth turbineHealth = prefab.AddComponent<TurbineHealth>();
+                PowerRelay powerRelay = GameObject.Instantiate(task.GetResult()).GetComponent<PowerRelay>();
+                IPrefabRequest req3 = PrefabDatabase.GetPrefabForFilenameAsync("Base/Ghosts/PowerSystemPreview.prefab");
+                yield return req3;
+                if (req3.TryGetPrefab(out powerRelay.powerSystemPreviewPrefab))
+                    turbine.relayPrefab = powerRelay;
+                TurbineHealth turbineHealth = prefab.EnsureComponent<TurbineHealth>();
                 PowerSource powerSource = prefab.EnsureComponent<PowerSource>();
                 powerSource.maxPower = QPatch.config.MaxPower;
-                PowerRelay powerRelay = task.GetResult().GetComponent<PowerRelay>();
                 powerRelay.internalPowerSource = powerSource;
                 powerRelay.dontConnectToRelays = false;
                 powerRelay.maxOutboundDistance = 50;
-                powerRelay.powerSystemPreviewPrefab = Resources.Load<GameObject>("Base/Ghosts/PowerSystemPreview.prefab");
-                if (powerRelay != null)
-                    turbine.relayPrefab = powerRelay;
+                //powerRelay.powerSystemPreviewPrefab = Resources.Load<GameObject>("Base/Ghosts/PowerSystemPreview.prefab");
                 turbine.Activate();
-                Logger.Log(Logger.Level.Debug, "TurbinePatch.GetGameObjectAsync: end");
             }
             prefab.SetActive(true);
             gameObject.Set(prefab);

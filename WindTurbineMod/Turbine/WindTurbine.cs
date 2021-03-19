@@ -24,6 +24,12 @@ namespace WindTurbinesMod.WindTurbine
 
         public float timeEastereggEnd = 0f;
 
+        // Each Update(), generated energy is added to profileEnergy and DeltaTime is added to profileTime. When profileTime >= 1,
+        // generationRate is set to (profileEnergy / profileTime) and both are reset to 0.
+        private float profileTime = 0f;
+        private float profileEnergy = 0f;
+        private float generationRate = 0f;
+
         bool NeedsMaintenance
         {
             get
@@ -35,7 +41,6 @@ namespace WindTurbinesMod.WindTurbine
 
         public void Activate()
         {
-            Logger.Log(Logger.Level.Debug, $"WindTurbine.Activate: start");
             spin = gameObject.FindChild("Blade Parent").EnsureComponent<TurbineSpin>();
             powerSource = gameObject.EnsureComponent<PowerSource>();
             powerSource.maxPower = QPatch.config.MaxPower;
@@ -43,7 +48,7 @@ namespace WindTurbinesMod.WindTurbine
             relay.internalPowerSource = powerSource;
             relay.dontConnectToRelays = false;
             relay.maxOutboundDistance = 50;
-            relay.powerSystemPreviewPrefab = Resources.Load<GameObject>("Base/Ghosts/PowerSystemPreview.prefab");
+            //relay.powerSystemPreviewPrefab = Resources.Load<GameObject>("Base/Ghosts/PowerSystemPreview.prefab");
 
             if (relayPrefab != null)
             {
@@ -107,21 +112,37 @@ namespace WindTurbinesMod.WindTurbine
 
         private void Update()
         {
-            if(health == null) health = GetComponent<TurbineHealth>();
-            if (constructable == null) constructable = gameObject.GetComponent<Constructable>();
-            if (constructable.constructed && Time.time > timeEastereggEnd && !NeedsMaintenance)
-            {
-                if (!loopSource.isPlaying) loopSource.Play();
-                float amount = this.GetRechargeScalar() * DayNightCycle.main.deltaTime * 40f * WindyMultiplier(new Vector2(transform.position.x, transform.position.z));
-                this.relay.ModifyPower(amount / 4f, out float num);
-                if(QPatch.config.TurbineTakesDamage && health.health - num > 0f) health.TakeDamage(num / 15f);
-                this.spin.spinSpeed = amount * 10f;
-                this.loopSource.volume = Mathf.Clamp(amount, 0.6f, 1f);
-            }
+            if(health == null)
+                health = GetComponent<TurbineHealth>();
+            if (constructable == null)
+                constructable = gameObject.GetComponent<Constructable>();
+
             if (NeedsMaintenance)
             {
                 this.spin.spinSpeed = 0f;
-                loopSource.Stop();
+                if (loopSource != null)
+                    loopSource.Stop();
+            }
+            else if (constructable.constructed && Time.time > timeEastereggEnd)
+            {
+                float deltaTime = Time.deltaTime;
+                if (!loopSource.isPlaying) loopSource.Play();
+                float amount = this.GetRechargeScalar() * DayNightCycle.main.deltaTime * 40f * WindyMultiplier(new Vector2(transform.position.x, transform.position.z));
+                float powerGen = QPatch.config.PowerProductionScale * amount / 4f;
+                this.profileEnergy += powerGen;
+                this.profileTime += deltaTime;
+                if (profileTime >= 1)
+                {
+                    this.generationRate = this.profileEnergy / this.profileTime;
+                    this.profileEnergy = 0f;
+                    this.profileTime = 0;
+                }
+                this.relay.ModifyPower(powerGen, out float num);
+                float damage = 200f / QPatch.config.SecondsUntilNeedMaintenance * deltaTime;
+                if (QPatch.config.TurbineTakesDamage && health.health - damage > 0f)
+                    health.TakeDamage(num / 15f);
+                this.spin.spinSpeed = amount * 10f;
+                this.loopSource.volume = Mathf.Clamp(amount, 0.6f, 1f);
             }
         }
 
@@ -172,6 +193,7 @@ namespace WindTurbinesMod.WindTurbine
                     {
                         text1 = "Wind Turbine: " + Mathf.RoundToInt(this.GetRechargeScalar() * 100f * WindyMultiplier(new Vector3(transform.position.x, transform.position.z))) + "% efficiency, " + Mathf.RoundToInt(this.powerSource.GetPower()).ToString() + "/" + Mathf.RoundToInt(this.powerSource.GetMaxPower()) + " power";
                         displayTime = 1f;
+                        text2 = $"Generation: {this.generationRate.ToString("0.00")}/s";
                     }
                     SetInteractText(text1, false, text2, false);
                     HandReticle.main.SetIcon(HandReticle.IconType.Info, displayTime);

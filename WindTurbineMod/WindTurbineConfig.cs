@@ -13,5 +13,7 @@ namespace WindTurbinesMod
         public bool TurbineTakesDamage;
         public bool TurbineMakesNoise;
         public float MaxPower;
+        public float PowerProductionScale;
+        public float SecondsUntilNeedMaintenance;
     }
 }
